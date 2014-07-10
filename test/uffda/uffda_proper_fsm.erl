@@ -22,18 +22,21 @@ initial_state_data() -> #state_data{}.
 %% Continue to verify state transitions from here down
 ?STATE_STARTING_UP(_S) -> [{?STATE_UP, {call, ?FSM, ?STATE_STARTING_UP, [online, #state_data]}},
                            {?STATE_DOWN, {call, ?FSM, ?STATE_STARTING_UP, [offline, #state_data]}},
-                           {?STATE_DELAYED_START, {call, ?FSM, ?STATE_STARTING_UP, [{starting, self()}, #state_data]}}].
+                           {?STATE_STARTING_UP, {call, ?FSM, ?STATE_STARTING_UP, [{starting, self()}, #state_data{}]}}].
 
 ?STATE_RESTARTING(_S) -> [{?STATE_UP, {call, ?FSM, ?STATE_RESTARTING, [online, _]}}, 
-                          {?STATE_DOWN, {call, ?FSM, ?STATE_RESTARTING, [offline, _]}}].
+                          {?STATE_DOWN, {call, ?FSM, ?STATE_RESTARTING, [offline, _]}}
+                          {?STATE_RESTARTING, {call, ?FSM, ?STATE_RESTARTING, [{starting, self()}, #state_data{}]}}].
 
-?STATE_UP(_S) -> [{?STATE_RESTARTING, {call, ?FSM, ?STATE_UP, [re_init, _]}},
-                   {history, {call, ?FSM, ?STATE_UP, [online, _]}},
-                   {?STATE_DOWN, {call, ?FSM, ?STATE_UP, [offline, _]}}].
+?STATE_UP(_S) -> [{?STATE_RESTARTING, {call, ?FSM, ?STATE_UP, [{starting, self()}, #state_data{}]}},
+                   {history, {call, ?FSM, ?STATE_UP, [online, #state_data{}]}},
+                   {?STATE_DOWN, {call, ?FSM, ?STATE_UP, [offline, #state_data{}]}}].
 
-?STATE_DOWN(_S) -> [{?STATE_UP, {call, ?FSM, ?STATE_DOWN, [online, _]}},
+?STATE_DOWN(_S) -> [{?STATE_RESTARTING, {call, ?FSM, ?STATE_DOWN, [{starting, self()}, #state_data{}]}}
+                    {?STATE_UP, {call, ?FSM, ?STATE_DOWN, [online, _]}},
                     {history, {call, ?FSM, ?STATE_DOWN, [offline, _]}}].
 
+%% Continue revising transitions from here
 ?STATE_DELAYED_START(_S) ->
     [{?STATE_STARTING_UP, {call, ?FSM, ?STATE_DELAYED_START, [{starting, self()}, #state_data{}]}}
      {?STATE_UP, {call, ?FSM, ?STATE_DELAYED_START, [online, #state_data{}]}},
