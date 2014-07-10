@@ -24,8 +24,8 @@ initial_state_data() -> #state_data{}.
                            {?STATE_DOWN, {call, ?FSM, ?STATE_STARTING_UP, [offline, #state_data]}},
                            {?STATE_STARTING_UP, {call, ?FSM, ?STATE_STARTING_UP, [{starting, self()}, #state_data{}]}}].
 
-?STATE_RESTARTING(_S) -> [{?STATE_UP, {call, ?FSM, ?STATE_RESTARTING, [online, _]}}, 
-                          {?STATE_DOWN, {call, ?FSM, ?STATE_RESTARTING, [offline, _]}}
+?STATE_RESTARTING(_S) -> [{?STATE_UP, {call, ?FSM, ?STATE_RESTARTING, [online, #state_data{}]}}, 
+                          {?STATE_DOWN, {call, ?FSM, ?STATE_RESTARTING, [offline, #state_data{}]}}
                           {?STATE_RESTARTING, {call, ?FSM, ?STATE_RESTARTING, [{starting, self()}, #state_data{}]}}].
 
 ?STATE_UP(_S) -> [{?STATE_RESTARTING, {call, ?FSM, ?STATE_UP, [{starting, self()}, #state_data{}]}},
