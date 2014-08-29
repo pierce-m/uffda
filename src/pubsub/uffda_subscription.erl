@@ -3,6 +3,7 @@
 -export([start_link/0,
          subscribe/3,
          subscribe/4,
+         subscribe_file/2,
          unsubscribe/3,
          notify/2]).
 
@@ -20,7 +21,8 @@ find_vars(Sub_Type, Address, Service, Status) ->
         pid -> uffda_pid_sender;
         sse -> uffda_pid_sender;
         email -> uffda_email_sender;
-        sms -> uffda_sms_sender
+        sms -> uffda_sms_sender;
+        tigertext -> uffda_tigertext_sender
         end,
     Ass = #ass{address = Address,
                service = Service,
@@ -39,13 +41,20 @@ subscribe(Sub_Type, Address, Service) ->
     
 -spec subscribe(sub_type(), address(), service_name(), service_status()) -> ok.
 subscribe(Sub_Type, Address, Service, Status)
-  when is_atom(Sub_Type), is_list(Address) or is_pid(Address), is_atom(Service), is_atom(Status) ->
+  when is_atom(Sub_Type), is_list(Address) or is_pid(Address) or is_tuple(Address), is_atom(Service), is_atom(Status) ->
     {Id, Mass} = find_vars(Sub_Type, Address, Service, Status),
     gen_event:add_handler(?PUBLISH_MGR, {uffda_publisher, Id}, Mass).
 
+-spec subscribe_file(file:name_all(), service_name()) -> ok.
+subscribe_file(File_Name, Service) ->
+    case file:consult(File_Name) of
+        {ok, Subscribers} -> _ = [subscribe(Type, Address, Service) || {Type, Address} <- Subscribers], ok;
+        _ -> error_logger:error_msg("Could not read subscribers from ~s", [File_Name])
+    end.
+
 -spec unsubscribe(sub_type(), address(), service_name()) -> ok.
 unsubscribe(Sub_Type, Address, Service)
-  when is_atom(Sub_Type), is_list(Address) or is_pid(Address), is_atom(Service) ->
+  when is_atom(Sub_Type), is_list(Address) or is_pid(Address) or is_tuple(Address), is_atom(Service) ->
     {Id, _Mass} = find_vars(Sub_Type, Address, Service, nonexistent),
     gen_event:delete_handler(?PUBLISH_MGR, {uffda_publisher, Id}, stop).
 

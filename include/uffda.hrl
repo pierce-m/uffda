@@ -42,7 +42,7 @@
 
 -type state() :: {module(), ass()}.
 
--type address() :: pid() | string().
+-type address() :: pid() | string() | {string(), string(), string()}.
 -record(ass, {address :: address(),
               service :: service_name(),
               status :: nonexistent | service_status()}).

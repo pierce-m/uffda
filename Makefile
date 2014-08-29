@@ -10,6 +10,7 @@ dep_test_commons = git https://github.com/tigertext/test_commons master
 
 
 ERLC_OPTS := +debug_info +"{cover_enabled, true}"
+COMPILE_FIRST := pubsub/uffda_publisher
 
 # Needed for testing
 TEST_ERLC_OPTS := -I include $(ERLC_OPTS)
